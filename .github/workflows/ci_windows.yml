@@ -5,6 +5,8 @@ on:
   workflow_dispatch:
 jobs:
   pytest:
+    permissions:
+      contents: read
     strategy:
       fail-fast: false  # https://github.com/actions/runner-images#available-images
       matrix:  # https://github.com/actions/python-versions/releases

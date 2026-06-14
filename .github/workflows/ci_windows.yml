@@ -13,7 +13,9 @@ jobs:
         python-version: [3.x]
     runs-on: ${{ matrix.os }}
     steps:
+      - uses: actions/checkout@v6
       - if: runner.os == 'Windows'
+        shell: pwsh
         run: |
           choco install vb-cable  # https://community.chocolatey.org/packages/vb-cable
           # cat "C:\ProgramData\chocolatey\lib\vb-cable\tools\readme.txt"
@@ -22,12 +24,12 @@ jobs:
           # VBCABLE_ControlPanel.exe
           # VBCABLE_Setup_x64.exe
           # VBCABLE_Setup.exe
-          # "C:\ProgramData\chocolatey\lib\vb-cable\tools\VBCABLE_Setup_x64.exe"
-      - uses: actions/checkout@v6
+          "C:\ProgramData\chocolatey\lib\vb-cable\tools\VBCABLE_Setup_x64.exe" /S
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
+      
       - run: pip install --upgrade pip
       - run: pip install pyinstaller pytest
       - run: pip install --editable .

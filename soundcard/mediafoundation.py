@@ -182,7 +182,7 @@ def _match_device(id, devices):
             return device
 
     # try case-insensitive fuzzy match:
-    pattern = '.*'.join(re.escape(ch) for ch in id)
+    pattern = '.*'.join(re.escape(ch) for ch in id_lower)
     for name, device in devices_by_name.items():
         if re.match(pattern, name, re.IGNORECASE):
             return device

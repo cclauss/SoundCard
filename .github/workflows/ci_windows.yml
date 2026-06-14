@@ -43,5 +43,6 @@ jobs:
           if soundcard.all_microphones(include_loopback=True):
               print(f"{soundcard.default_microphone() = }")
           # We want vb-cable to be initialized so we can run:
+          assert soundcard.all_speakers()
           soundcard.get_speaker('Cable')
       - run: pytest

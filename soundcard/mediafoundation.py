@@ -16,7 +16,8 @@ _package_dir, _ = os.path.split(__file__)
 with open(os.path.join(_package_dir, 'mediafoundation.py.h'), 'rt') as f:
     _ffi.cdef(f.read())
 
-_ole32 = _ffi.dlopen('ole32')
+_ole32 = _ffi.dlopen('ole32.dll')
+print(f"Loaded ole32.dll ({_ole32}) from {_ole32._name}")
 
 
 # use a custom warning subclass that is always shown, instead of once:
@@ -162,7 +163,7 @@ def get_microphone(id, include_loopback=False):
     """
     return _match_device(id, all_microphones(include_loopback))
 
-def _match_device(id, devices):
+def z_match_device(id, devices):
     """Find id in a list of devices.
 
     id can be a WASAPI id, a substring of the device name, or a
@@ -182,6 +183,33 @@ def _match_device(id, devices):
     for name, device in devices_by_name.items():
         if re.match(pattern, name):
             return device
+    raise IndexError('no device with id {}'.format(id))
+
+def _match_device(id, devices):
+    """Find id in a list of devices.
+
+    id can be a WASAPI id, a substring of the device name, or a
+    fuzzy-matched pattern for the microphone name.
+
+    """
+    devices_by_id = {device.id: device for device in devices}
+    devices_by_name = {device.name: device for device in devices}
+    if id in devices_by_id:
+        return devices_by_id[id]
+
+    id_lower = id.lower()
+
+    # try case-insensitive substring match:
+    for name, device in devices_by_name.items():
+        if id_lower in name.lower():
+            return device
+
+    # try case-insensitive fuzzy match:
+    pattern = '.*'.join(re.escape(ch) for ch in id)
+    for name, device in devices_by_name.items():
+        if re.match(pattern, name, re.IGNORECASE):
+            return device
+
     raise IndexError('no device with id {}'.format(id))
 
 def _str2wstr(string):

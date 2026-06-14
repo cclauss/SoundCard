@@ -61,8 +61,9 @@ def loopback_speaker():
         # must install https://www.vb-audio.com/Cable/index.htm
         return soundcard.get_speaker('Cable')
     elif sys.platform == 'darwin':
+        return soundcard.default_speaker()
         # must install soundflower
-        return soundcard.get_speaker('Soundflower64')
+        # return soundcard.get_speaker('Soundflower64')
     elif sys.platform == 'linux':
         # pacmd load-module module-null-sink channels=6 rate=48000
         return soundcard.get_speaker('Null')
@@ -80,8 +81,9 @@ def loopback_microphone():
         # must install https://www.vb-audio.com/Cable/index.htm
         return soundcard.get_microphone('Cable')
     elif sys.platform == 'darwin':
+        return soundcard.default_microphone()
         # must install soundflower
-        return soundcard.get_microphone('Soundflower64')
+        # return soundcard.get_microphone('Soundflower64')
     elif sys.platform == 'linux':
         return soundcard.get_microphone('Null', include_loopback=True)
     else:

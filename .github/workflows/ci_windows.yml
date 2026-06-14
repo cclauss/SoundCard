@@ -24,7 +24,8 @@ jobs:
           # VBCABLE_ControlPanel.exe
           # VBCABLE_Setup_x64.exe
           # VBCABLE_Setup.exe
-          "C:\ProgramData\chocolatey\lib\vb-cable\tools\VBCABLE_Setup_x64.exe" /S
+          & "$env:ProgramData\chocolatey\lib\vb-cable\tools\VBCABLE_Setup_x64.exe" '/S'
+          Start-Sleep -Seconds 5  # Allow driver registration before Python checks
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}

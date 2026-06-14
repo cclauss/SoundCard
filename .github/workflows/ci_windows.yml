@@ -25,7 +25,9 @@ jobs:
           # VBCABLE_Setup_x64.exe
           # VBCABLE_Setup.exe
           & "$env:ProgramData\chocolatey\lib\vb-cable\tools\VBCABLE_Setup_x64.exe" '/S'
-          Start-Sleep -Seconds 5  # Allow driver registration before Python checks
+          Start-Sleep -Seconds 10  # Allow driver registration to complete
+          Restart-Service -Name AudioSrv -Force  # Re-enumerate audio endpoints after driver install
+          Start-Sleep -Seconds 5  # Allow audio service to fully restart
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}

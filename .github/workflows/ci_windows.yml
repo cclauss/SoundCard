@@ -1,0 +1,62 @@
+name: ci_windows
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  pytest:
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false  # https://github.com/actions/runner-images#available-images
+      matrix:  # https://github.com/actions/python-versions/releases
+        os: [windows-latest]  # , windows-11-arm]
+        # python-version: ["3.10", "3.12", "3.14", "3.14t", "3.15", "pypy-3.11"]
+        python-version: [3.x]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - if: runner.os == 'Windows'
+        # uses: AlekseyMartynov/action-vbcable-win@main
+        shell: pwsh
+        run: |
+          $svc = Get-Service -Name audiosrv
+          if ($svc.Status -ne 'Running') {
+            Start-Service audiosrv
+          }
+          New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy\"
+          New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -Value "0x00000001" -PropertyType "dword"
+          choco install vb-cable  # https://community.chocolatey.org/packages/vb-cable
+          # cat "C:\ProgramData\chocolatey\lib\vb-cable\tools\readme.txt"
+          # ls "C:\ProgramData\chocolatey\lib\vb-cable"
+          # ls "C:\ProgramData\chocolatey\lib\vb-cable\tools"
+          # VBCABLE_ControlPanel.exe
+          # VBCABLE_Setup_x64.exe
+          # VBCABLE_Setup.exe
+          & "$env:ProgramData\chocolatey\lib\vb-cable\tools\VBCABLE_Setup_x64.exe"  # '/S'
+          
+          # Start-Sleep -Seconds 10  # Allow driver registration to complete
+          # Restart-Service -Name AudioSrv -Force  # Re-enumerate audio endpoints after driver install
+          # Start-Sleep -Seconds 5  # Allow audio service to fully restart
+
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+      
+      - run: pip install --upgrade pip
+      - run: pip install pyinstaller pytest
+      - run: pip install --editable .
+      - shell: python  # Sanity check
+        run: |
+          import soundcard
+          print(f"{soundcard.all_speakers() = }")
+          if soundcard.all_speakers():
+              print(f"{soundcard.default_speaker() = }")
+          print(f"{soundcard.all_microphones(include_loopback=True) = }")
+          if soundcard.all_microphones(include_loopback=True):
+              print(f"{soundcard.default_microphone() = }")
+          # We want vb-cable to be initialized so we can run:
+          assert soundcard.all_speakers()
+          soundcard.get_speaker('Cable')
+      - run: pytest

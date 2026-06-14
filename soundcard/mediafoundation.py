@@ -16,7 +16,7 @@ _package_dir, _ = os.path.split(__file__)
 with open(os.path.join(_package_dir, 'mediafoundation.py.h'), 'rt') as f:
     _ffi.cdef(f.read())
 
-_ole32 = _ffi.dlopen('ole32')
+_ole32 = _ffi.dlopen('ole32.dll')
 
 
 # use a custom warning subclass that is always shown, instead of once:
@@ -173,15 +173,20 @@ def _match_device(id, devices):
     devices_by_name = {device.name: device for device in devices}
     if id in devices_by_id:
         return devices_by_id[id]
-    # try substring match:
+
+    id_lower = id.lower()
+
+    # try case-insensitive substring match:
     for name, device in devices_by_name.items():
-        if id in name:
+        if id_lower in name.lower():
             return device
-    # try fuzzy match:
-    pattern = '.*'.join(id)
+
+    # try case-insensitive fuzzy match:
+    pattern = '.*'.join(re.escape(ch) for ch in id)
     for name, device in devices_by_name.items():
-        if re.match(pattern, name):
+        if re.match(pattern, name, re.IGNORECASE):
             return device
+
     raise IndexError('no device with id {}'.format(id))
 
 def _str2wstr(string):
